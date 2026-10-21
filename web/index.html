@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GalGod · Web RPY Loader</title>
+<link rel="stylesheet" href="css/stage.css">
+<link rel="stylesheet" href="css/textbox.css">
+<link rel="stylesheet" href="css/menu.css">
+<link rel="stylesheet" href="css/effects.css">
+</head>
+<body>
+
+<!-- 背景层：唯一被等比缩放的 1920x1080 舞台 -->
+<div id="stage-outer">
+  <div id="stage" data-w="1920" data-h="1080">
+
+    <!-- master 层：背景 / CG / 立绘 / 雨 -->
+    <div id="layer-master" class="layer">
+      <div id="layer-bg" class="sublayer"></div>
+      <div id="layer-cg" class="sublayer"></div>
+      <div id="layer-rainback" class="sublayer"></div>
+      <div id="layer-sprites" class="sublayer"></div>
+      <div id="layer-rainfront" class="sublayer"></div>
+    </div>
+
+    <!-- 遮罩层：cinematic_black_overlay / flash 等 -->
+    <div id="layer-overlay" class="layer"></div>
+
+    <!-- 界面层：对白 / HUD / 选项 / 居中文本 -->
+    <div id="layer-screens" class="layer">
+      <div id="centered-text" class="centered-text" hidden></div>
+
+      <div id="textbox" class="textbox hidden">
+        <div id="namebox" class="namebox" hidden><span id="who"></span></div>
+        <div id="what" class="what"></div>
+        <div id="next-indicator" class="next-indicator" hidden>▼</div>
+      </div>
+
+      <div id="choice-layer" class="choice-layer" hidden></div>
+    </div>
+
+    <!-- HUD：对应 screens/ui.rpy 的 custom_ui（独立层，避免被 screens 层样式影响） -->
+    <div id="layer-hud" class="layer">
+      <div id="hud" class="hud" hidden>
+        <!-- 区域 1：右上角功能条（快进 | 自动 | 菜单） -->
+        <div id="hud-top" class="hud-top"></div>
+
+        <!-- 区域 2：右下角存档区（历史 | 快存 | 快读 | 存档 | 读档） -->
+        <div id="hud-bottom" class="hud-bottom"></div>
+      </div>
+    </div>
+
+    <!-- 菜单层：主菜单 / 存读档 / 设置 / 画廊 -->
+    <div id="layer-menus" class="layer"></div>
+
+    <!-- 全屏视频（ED） -->
+    <div id="layer-movie" class="layer" hidden></div>
+
+    <!-- 屏幕转场用快照 -->
+    <div id="layer-transition" class="layer transition-layer"></div>
+  </div>
+</div>
+
+<!-- 加载遮罩 -->
+<div id="boot" class="boot">
+  <div class="boot-inner">
+    <div class="boot-title">GalGod</div>
+    <div class="boot-status" id="boot-status">正在加载资源清单…</div>
+    <div class="boot-bar"><div class="boot-bar-fill" id="boot-bar-fill"></div></div>
+    <div class="boot-hint" id="boot-hint"></div>
+  </div>
+</div>
+
+<!-- 诊断面板（F9）：诊断 / 章节跳转 / 变量 / 指令追踪 -->
+<div id="diag" class="diag" hidden>
+  <div class="diag-head">
+    <span class="d-title">调试面板</span>
+    <div style="display:flex;gap:6px;">
+      <button type="button" id="diag-refresh">刷新</button>
+      <button type="button" id="diag-close">关闭 (F9)</button>
+    </div>
+  </div>
+  <div class="diag-tabs" id="diag-tabs">
+    <button type="button" data-tab="issues" class="active">诊断</button>
+    <button type="button" data-tab="jump">章节跳转</button>
+    <button type="button" data-tab="vars">变量</button>
+    <button type="button" data-tab="trace">指令追踪</button>
+  </div>
+  <div class="diag-body" id="diag-body"></div>
+  <div class="diag-foot">
+    <span id="diag-pc">—</span>
+    <span id="diag-state">—</span>
+  </div>
+</div>
+
+<script src="js/fs-utils.js"></script>
+<script src="js/manifest.js"></script>
+<script src="js/rpy/strings.js"></script>
+<script src="js/rpy/lexer.js"></script>
+<script src="js/rpy/parser.js"></script>
+<script src="js/rpy/expr.js"></script>
+<script src="js/rpy/compiler.js"></script>
+<script src="js/engine/state.js"></script>
+<script src="js/engine/actors.js"></script>
+<script src="js/engine/images.js"></script>
+<script src="js/engine/audio.js"></script>
+<script src="js/engine/transitions.js"></script>
+<script src="js/engine/stage.js"></script>
+<script src="js/engine/save.js"></script>
+<script src="js/engine/movie.js"></script>
+<script src="js/ui/say.js"></script>
+<script src="js/ui/centered_text.js"></script>
+<script src="js/ui/choice.js"></script>
+<script src="js/ui/history.js"></script>
+<script src="js/ui/diag.js"></script>
+<script src="js/engine/vm.js"></script>
+<script src="js/ui/main_menu.js"></script>
+<script src="js/ui/save_load.js"></script>
+<script src="js/ui/config.js"></script>
+<script src="js/ui/gallery.js"></script>
+<script src="js/ui/about.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>

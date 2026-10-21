@@ -1,0 +1,19 @@
+{
+ "_comment": "缺失资源回退表。key 为剧本中引用的原始路径，value 为实际可用的替代路径；null 表示该资源按原意应静默跳过。",
+ "version": 1,
+ "image": {
+  "gui/history_jump_hover.png": "gui/history_jump_hover_background.png",
+  "gui/history_jump_idle.png": "gui/history_jump_idle_background.png"
+ },
+ "audio": {
+  "audio/fx/FX_上课铃.mp3": "audio/fx/FX_上课铃.ogg",
+  "cv/linxi/linxi_01220.ogg": null,
+  "cv/linxi/linxi_01230.ogg": null,
+  "cv/linxi/linxi_01240.ogg": null
+ },
+ "notes": {
+  "gui/history_jump_hover.png": "原作只有 *_background.png 变体，历史记录的跳转按钮用背景图替代。",
+  "audio/fx/FX_上课铃.mp3": "同名文件实际是 .ogg，浏览器可直接播放。",
+  "cv/linxi/linxi_012*.ogg": "剧本里的 01220/01230/01240 是刻意打错的编号（配合省略号演出），Ren'Py 同样找不到，按静默跳过处理。"
+ }
+}

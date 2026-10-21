@@ -1,0 +1,319 @@
+/* ==========================================================================
+   舞台：固定 1920x1080 逻辑尺寸，等比缩放并居中，两侧留黑边。
+   所有内部坐标都按 Ren'Py 的 1080p 坐标系书写，缩放交给 scale()。
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: "JCYT500W", "Source Han Sans CN", "Noto Sans CJK SC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 字体：工程根目录自带字体
+   本文件位于 web/css/，工程根在两级之上（web/css -> web -> archive） */
+@font-face {
+  font-family: "JCYT500W";
+  src: url("../../JCYT500W.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Han Sans CN";
+  src: url("../../SourceHanSansCN-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+#stage-outer {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+#stage {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  flex: 0 0 auto;
+  transform-origin: center center;
+  background: #000;
+  overflow: hidden;
+  /* 由 JS 设置 transform: translate(-50%,-50%) scale(s) */
+}
+
+/* --------------------------------------------------------------------------
+   图层堆叠顺序（对应 Ren'Py 的 master / screens / overlay）
+   -------------------------------------------------------------------------- */
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sublayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#layer-master   { z-index: 10; }
+#layer-overlay  { z-index: 20; }
+#layer-screens  { z-index: 30; }
+
+/* HUD：对应 custom_ui 的 zorder 100。
+   必须高于 screens 层，否则按钮点击会被下层「点击推进对话」吃掉。
+   本层自身不拦截点击，只有按钮拦截。 */
+#layer-hud      { z-index: 45; pointer-events: none; }
+
+/* 菜单层默认不拦截点击：只有真正挂了菜单节点时才置 auto。
+   否则这块全屏层会盖住 HUD，导致按钮点不动。 */
+#layer-menus    { z-index: 50; pointer-events: none; }
+#layer-menus.active { pointer-events: auto; }
+
+#layer-movie    { z-index: 60; background: #000; pointer-events: auto; }
+#layer-transition { z-index: 70; }
+
+/* 界面层需要接收点击（推进对话） */
+#layer-screens { pointer-events: auto; }
+
+/* --------------------------------------------------------------------------
+   背景与 CG
+   -------------------------------------------------------------------------- */
+#layer-bg img,
+#layer-cg img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* bg_fit：cover 充满屏幕 */
+.img-fit {
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+}
+
+/* 纯色背景 */
+.solid-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   立绘
+   -------------------------------------------------------------------------- */
+.sprite {
+  position: absolute;
+  bottom: 0;
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+  pointer-events: none;
+  /* 由 JS 设置 left / transform */
+  image-rendering: auto;
+}
+
+/* 立绘动作 */
+@keyframes sprite-shake {
+  0%   { margin-left: 0; }
+  25%  { margin-left: 10px; }
+  50%  { margin-left: -10px; }
+  75%  { margin-left: 10px; }
+  100% { margin-left: 0; }
+}
+@keyframes sprite-jump {
+  0%   { margin-bottom: 0; }
+  50%  { margin-bottom: 30px; }
+  100% { margin-bottom: 0; }
+}
+.sprite.act-shake { animation: sprite-shake 0.2s ease-in-out 1; }
+.sprite.act-jump  { animation: sprite-jump 0.3s ease-in-out 1; }
+
+/* --------------------------------------------------------------------------
+   雨（三层平铺，对应 raineffect.rpy）
+   -------------------------------------------------------------------------- */
+.rain-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% + 512px);
+  height: calc(100% + 512px);
+  background-repeat: repeat;
+  background-size: 512px 512px;
+  filter: blur(4px);
+  will-change: transform;
+}
+@keyframes rain-fall-slow  { from { transform: translate(0, -512px); } to { transform: translate(-288px, 0); } }
+@keyframes rain-fall-mid   { from { transform: translate(0, -512px); } to { transform: translate(-288px, 0); } }
+@keyframes rain-fall-fast  { from { transform: translate(0, -512px); } to { transform: translate(-288px, 0); } }
+
+/* --------------------------------------------------------------------------
+   加载遮罩
+   -------------------------------------------------------------------------- */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  transition: opacity .5s ease;
+}
+.boot.hide { opacity: 0; pointer-events: none; }
+.boot-inner { width: 520px; text-align: center; }
+.boot-title {
+  font-size: 44px;
+  letter-spacing: 8px;
+  margin-bottom: 26px;
+  color: #fff;
+  text-shadow: 0 0 24px rgba(255,255,255,.25);
+}
+.boot-status { font-size: 16px; color: #aaa; margin-bottom: 12px; min-height: 22px; }
+.boot-bar { height: 4px; background: #222; border-radius: 2px; overflow: hidden; }
+.boot-bar-fill { height: 100%; width: 0%; background: #fff; transition: width .2s ease; }
+.boot-hint { margin-top: 16px; font-size: 13px; color: #666; line-height: 1.7; }
+
+/* --------------------------------------------------------------------------
+   诊断面板
+   -------------------------------------------------------------------------- */
+/* 注意：.diag 默认 display:flex 会覆盖 [hidden] 的 display:none，
+   必须显式补一条 [hidden] 规则，否则面板永远关不掉。 */
+.diag[hidden] { display: none !important; }
+
+.diag {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 640px;
+  z-index: 950;
+  background: rgba(10,10,12,.97);
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  box-shadow: -8px 0 32px rgba(0,0,0,.6);
+}
+.diag-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #333;
+  color: #ddd;
+  flex: 0 0 auto;
+}
+.diag-head .d-title { letter-spacing: 1px; font-weight: 600; }
+.diag-head button {
+  background: #222; color: #ddd; border: 1px solid #444;
+  border-radius: 4px; padding: 4px 10px; cursor: pointer;
+  font-family: inherit; font-size: 12px;
+}
+.diag-head button:hover { background: #2f2f2f; color: #fff; }
+
+/* 页签 */
+.diag-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 10px;
+  border-bottom: 1px solid #2a2a2a;
+  flex: 0 0 auto;
+}
+.diag-tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #888;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.diag-tabs button:hover { color: #ccc; }
+.diag-tabs button.active { color: #fff; border-bottom-color: #58a6ff; }
+.diag-tabs .d-badge {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #6e2b28;
+  color: #ffb4ab;
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
+}
+
+.diag-body { flex: 1; overflow: auto; padding: 10px 14px; color: #bbb; line-height: 1.55; }
+.diag-body .d-item { padding: 6px 0; border-bottom: 1px dashed #242424; }
+.diag-body .d-kind { color: #ff7b72; }
+.diag-body .d-loc  { color: #79c0ff; }
+.diag-body .d-msg  { color: #ccc; white-space: pre-wrap; }
+.diag-body .d-ok   { color: #3fb950; }
+.diag-body .d-stats {
+  margin-bottom: 14px; padding: 10px; background: #12161c;
+  border-radius: 6px; line-height: 1.9; color: #9fb0c0;
+}
+.diag-body .d-section { color: #e6edf3; margin: 14px 0 8px; font-weight: 600; }
+
+/* 章节跳转 */
+.diag-jump { display: flex; flex-wrap: wrap; gap: 6px; }
+.diag-jump button {
+  background: #1c2330; color: #c9d1d9; border: 1px solid #30363d;
+  border-radius: 4px; padding: 6px 10px; cursor: pointer;
+  font-family: inherit; font-size: 11px;
+}
+.diag-jump button:hover { background: #253040; border-color: #58a6ff; color: #fff; }
+
+/* 变量表 */
+.diag-vars { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+.diag-vars .v-row {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 3px 6px; border-radius: 3px; background: #12161c;
+}
+.diag-vars .v-key { color: #79c0ff; }
+.diag-vars .v-val { color: #d2a8ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 指令追踪 */
+.diag-trace .t-row {
+  display: flex; gap: 10px; padding: 3px 6px; border-radius: 3px;
+  font-size: 11px; line-height: 1.6;
+}
+.diag-trace .t-row:nth-child(odd) { background: #101418; }
+.diag-trace .t-pc { color: #6e7681; flex: 0 0 46px; }
+.diag-trace .t-lab { color: #79c0ff; flex: 0 0 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diag-trace .t-op { color: #adbac7; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diag-trace .t-row.current { background: #1f2d1f; }
+.diag-trace .t-row.current .t-op { color: #7ee787; }
+
+.diag-foot {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-top: 1px solid #2a2a2a;
+  color: #666;
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+}

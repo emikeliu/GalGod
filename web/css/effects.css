@@ -1,0 +1,122 @@
+/* ==========================================================================
+   转场与特效
+   对应 resources.rpy 的 flash / forced_dissolve、script 中的 vpunch/hpunch、
+   effects/raineffect.rpy 的雨。
+   ========================================================================== */
+
+/* 通用淡入淡出 */
+.fade-in  { animation: fade-in var(--dur, .5s) ease both; }
+.fade-out { animation: fade-out var(--dur, .5s) ease both; }
+@keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* dissolve：新旧图层交叉淡化（JS 用两份快照实现，这里只提供单层能力） */
+.dissolving { transition: opacity var(--dur, .5s) linear; }
+
+/* --------------------------------------------------------------------------
+   flash = Fade(0.1, 0.0, 0.5, color="#fff")
+   -------------------------------------------------------------------------- */
+.fx-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+.fx-flash.run { animation: fx-flash 0.6s ease-out both; }
+@keyframes fx-flash {
+  0%   { opacity: 0; }
+  16%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* fade：黑场过渡（出 0.5s，停留 0，入 0.5s） */
+.fx-fade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+.fx-fade.run { animation: fx-fade 1s ease both; }
+@keyframes fx-fade {
+  0%   { opacity: 0; }
+  50%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   vpunch / hpunch：舞台整体震动
+   -------------------------------------------------------------------------- */
+#stage.fx-vpunch { animation: fx-vpunch .32s ease-in-out 1; }
+#stage.fx-hpunch { animation: fx-hpunch .32s ease-in-out 1; }
+@keyframes fx-vpunch {
+  0%, 100% { transform: var(--stage-transform) translateY(0); }
+  30%      { transform: var(--stage-transform) translateY(-28px); }
+  65%      { transform: var(--stage-transform) translateY(12px); }
+}
+@keyframes fx-hpunch {
+  0%, 100% { transform: var(--stage-transform) translateX(0); }
+  30%      { transform: var(--stage-transform) translateX(-28px); }
+  65%      { transform: var(--stage-transform) translateX(12px); }
+}
+
+/* --------------------------------------------------------------------------
+   pixellate：像素化转场（近似实现）
+   -------------------------------------------------------------------------- */
+.fx-pixellate {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  pointer-events: none;
+}
+.fx-pixellate.run { animation: fx-pixellate .9s ease both; }
+@keyframes fx-pixellate {
+  0%   { opacity: 0; backdrop-filter: blur(0px); }
+  45%  { opacity: .6; backdrop-filter: blur(10px); }
+  100% { opacity: 0; backdrop-filter: blur(0px); }
+}
+
+/* --------------------------------------------------------------------------
+   forced_dissolve / cinematic_black_overlay 的线性渐变
+   -------------------------------------------------------------------------- */
+.linear-fade { transition: opacity linear; }
+
+/* 覆盖层（cinematic_black_overlay） */
+.overlay-solid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   记忆滤镜（memory_filter / gray_filter / reset_filter）
+   作用在 master 层
+   -------------------------------------------------------------------------- */
+#layer-master.filter-gray    { filter: grayscale(1); transition: filter .4s ease; }
+#layer-master.filter-memory  {
+  filter: sepia(.45) grayscale(.5) contrast(.9) saturate(.75) brightness(1.02);
+  transition: filter .6s ease;
+}
+#layer-master.filter-reset   { filter: none; transition: filter .4s ease; }
+
+/* --------------------------------------------------------------------------
+   舞台转场快照
+   -------------------------------------------------------------------------- */
+.transition-layer { overflow: hidden; }
+.transition-layer > .snap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 黑幕渐黑（收场用） */
+.blackout { position: absolute; inset: 0; background: #000; opacity: 0; }
+.blackout.run { animation: blackout-in 2s linear both; }
+@keyframes blackout-in { from { opacity: 0; } to { opacity: 1; } }

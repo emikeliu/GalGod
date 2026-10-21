@@ -1,0 +1,29 @@
+# 缺失资源报告  2026-10-21T17:26:33Z
+
+# 共 6 个被引用但未找到的文件
+
+audio/fx/FX_上课铃.mp3
+    首次引用: resources.rpy:211
+    尝试路径: audio/fx/FX_上课铃.mp3
+    同名候选: audio/fx/FX_上课铃.ogg
+
+cv/linxi/linxi_01220.ogg
+    首次引用: scenes/1_3.rpy:398
+    尝试路径: cv/linxi/linxi_01220.ogg, audio/cv/linxi/linxi_01220.ogg
+
+cv/linxi/linxi_01230.ogg
+    首次引用: scenes/1_3.rpy:400
+    尝试路径: cv/linxi/linxi_01230.ogg, audio/cv/linxi/linxi_01230.ogg
+
+cv/linxi/linxi_01240.ogg
+    首次引用: scenes/1_3.rpy:402
+    尝试路径: cv/linxi/linxi_01240.ogg, audio/cv/linxi/linxi_01240.ogg
+
+gui/history_jump_hover.png
+    首次引用: history_screen.rpy:65
+    尝试路径: gui/history_jump_hover.png
+
+gui/history_jump_idle.png
+    首次引用: history_screen.rpy:64
+    尝试路径: gui/history_jump_idle.png
+
